@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>Saintber.EntityFrameworkCore</id>
+    <version>1.0.0</version>
+    <authors>Saintber</authors>
+    <owners>Saintber</owners>
+    <description>Provide essential base classes and development tools for Entity Framework repository development.</description>
+	<readme>README.md</readme>
+	<license type="expression">MIT</license>
+	<repository type="git" url="https://github.com/saintber/Saintber.EntityFrameworkCore.git" />
+    <dependencies>
+      <group targetFramework=".NET6.0">
+        <dependency id="Microsoft.EntityFrameworkCore" version="7.0.20" />
+      </group>
+      <group targetFramework=".NET8.0">
+        <dependency id="Microsoft.EntityFrameworkCore" version="9.0.2" />
+      </group>
+      <group targetFramework=".NET9.0">
+        <dependency id="Microsoft.EntityFrameworkCore" version="9.0.2" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="bin\Release\**\Saintber.EntityFrameworkCore.dll" target="lib" />
+    <file src="bin\Release\**\Saintber.EntityFrameworkCore.xml" target="lib" />
+    <file src="README.md" target="" />
+  </files>
+</package>
