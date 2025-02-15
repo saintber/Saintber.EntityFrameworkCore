@@ -4,9 +4,11 @@
 # https://aka.ms/yaml
 
 trigger:
-  branches:
+  tags:
     include:
-      - main
+      - v*
+    exclude:
+      - v*-*
 
 pool:
   vmImage: ubuntu-latest
@@ -14,7 +16,6 @@ pool:
 variables:
   BuildConfiguration: 'Release'
   BuildProjects: '**/*.csproj'
-  GitHubEndPoint: '/saintber/Saintber.EntityFrameworkCore.git'
   PushBranch: 'main'
 
 steps:
@@ -56,14 +57,11 @@ steps:
 
 # 設定套件來源
 - script: |
-    nuget sources Add -Name "nuget.org" -Source "https://api.nuget.org/v3/index.json" -ConfigFile $(Build.SourcesDirectory)/nuget.config
+    nuget sources Add -Name "nuget.org" -Source "https://api.nuget.org/v3/index.json" -ConfigFile nuget.config
     if [ -n "$(PrivateSource)" ]; then
       echo "Adding Private NuGet source: $(PrivateSource)"
-      nuget sources Add -Name "Private" -Source "$(PrivateSource)" -ConfigFile $(Build.SourcesDirectory)/nuget.config
+      nuget sources Add -Name "Private" -Source "$(PrivateSource)" -ConfigFile nuget.config
     fi
-
-    echo "Available NuGet Sources:"
-    nuget sources List -ConfigFile NuGet.Config
   displayName: 'Configure NuGet Sources'
 
 # 設定 nuspec
@@ -100,20 +98,23 @@ steps:
     echo "Configuring Git..."
     git config --global user.email "$(GitHubUserMail)"
     git config --global user.name "$(GitHubUserName)"
-    echo "Staging nuspec changes..."
-    git branch
-    git add **/*.nuspec
-    git commit -m "CI: Update nuspec version to $(PACKAGE_VERSION)"
-    git remote add github https://$(GitHubToken)@github.com$(GitHubEndPoint)
-    git remote -v
-    echo "Pushing changes to $(PushBranch) branch..."
-    git git push -u github $(PushBranch)
-  displayName: "Push updated nuspec to GitHub $(PushBranch) branch"
+    git remote set-url origin https://$(GitHubToken)@github.com$(GitHubEndPoint)
+    echo "Pushing to $(PushBranch) branch..."
+    git fetch origin
+    if git show-ref --verify --quiet refs/remotes/origin/$(PushBranch); then
+        echo "Branch $(PushBranch) exists remotely. Checking out..."
+        git checkout -B $(PushBranch) origin/$(PushBranch)
+    else
+        echo "Branch $(PushBranch) does not exist remotely. Creating new branch..."
+        git checkout -b $(PushBranch)
+    fi
+    git push -u origin $(PushBranch
+  displayName: "Push to GitHub $(PushBranch) branch"
 
 # 推送套件
 - task: NuGetCommand@2
   displayName: 'Push to Azure Artifact'
-  condition: and(succeeded(), ne('$(PrivateSource)', ''))
+  condition: and(succeeded(), ne(variables['PrivateSource'], ''))
   inputs:
     command: 'push'
     packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
@@ -126,4 +127,4 @@ steps:
     command: 'push'
     packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
     nuGetFeedType: 'external'
-    publishVstsFeed: $(NugetOrgServiceConnectionToken)
+    publishFeedCredentials: $(NugetOrgServiceConnectionToken)

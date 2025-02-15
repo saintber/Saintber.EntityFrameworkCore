@@ -39,14 +39,11 @@ steps:
 
 # 設定套件來源
 - script: |
-    nuget sources Add -Name "nuget.org" -Source "https://api.nuget.org/v3/index.json" -ConfigFile $(Build.SourcesDirectory)/nuget.config
+    nuget sources Add -Name "nuget.org" -Source "https://api.nuget.org/v3/index.json" -ConfigFile nuget.config
     if [ -n "$(PrivateSource)" ]; then
       echo "Adding Private NuGet source: $(PrivateSource)"
-      nuget sources Add -Name "Private" -Source "$(PrivateSource)" -ConfigFile $(Build.SourcesDirectory)/nuget.config
+      nuget sources Add -Name "Private" -Source "$(PrivateSource)" -ConfigFile nuget.config
     fi
-
-    echo "Available NuGet Sources:"
-    nuget sources List -ConfigFile NuGet.Config
   displayName: 'Configure NuGet Sources'
 
 # 還原套件

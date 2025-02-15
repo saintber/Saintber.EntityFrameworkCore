@@ -12,7 +12,6 @@ variables:
   BuildConfiguration: 'Release'
   BuildProjects: '**/*.csproj'
   TestProjects: '**/*[Uu]nit[Tt]ests/*.csproj'
-  PushBranch: 'Backlogs/#84_佈署測試'
 
 steps:
 - checkout: self
