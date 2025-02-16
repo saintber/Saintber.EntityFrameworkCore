@@ -92,6 +92,23 @@ steps:
     packagesToPack: 'src/*/*.nuspec'
     outputDir: '$(Build.ArtifactStagingDirectory)'
 
+# 單元測試
+- task: DotNetCoreCLI@2
+  displayName: 'Run MSTest with XPlat Code Coverage'
+  inputs:
+    command: test
+    projects: '$(TestProjects)'
+    arguments: '--configuration $(BuildConfiguration) --collect "XPlat Code Coverage"'
+    publishTestResults: true
+
+# 推送測試報告
+- task: PublishCodeCoverageResults@1
+  displayName: 'Publish Code Coverage Report'
+  inputs:
+    codeCoverageTool: 'Cobertura'
+    summaryFileLocation: '$(Agent.TempDirectory)/**/coverage.cobertura.xml'
+    reportDirectory: '$(Build.ArtifactStagingDirectory)/coverage/html'
+
 # 推送套件
 - task: NuGetCommand@2
   displayName: 'Push to Azure Artifact'

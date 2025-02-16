@@ -42,7 +42,7 @@
         : EntityStoreBase<TEntity, TFilterModel>
         , IEntityStore<TEntity, TModel, TFilterModel>
     {
-        public EntityStoreBase(IEntityStore<TEntity, TFilterModel> entityStore)
+        public EntityStoreBase(IEntityStore<TEntity> entityStore)
             : base(entityStore) { }
 
         public abstract Task<IEnumerable<TModel>> GetAsync(IQueryable<TEntity> query, CancellationToken cancellationToken = default);
