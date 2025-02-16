@@ -6,10 +6,10 @@ namespace Saintber.EntityFrameworkCore
     /// 實體資料存取庫。
     /// </summary>
     /// <typeparam name="TDbContext">資料庫連線實體型別。</typeparam>
-    /// <typeparam name="T">實體資料型別。</typeparam>
-    public class EntityStore<TDbContext, T> : IEntityStore<T>
+    /// <typeparam name="TEntity">實體資料型別。</typeparam>
+    public class EntityStore<TDbContext, TEntity> : IEntityStore<TEntity>
         where TDbContext : DbContext
-        where T : class
+        where TEntity : class
     {
         private readonly TDbContext dbContext;
 
@@ -18,19 +18,19 @@ namespace Saintber.EntityFrameworkCore
             this.dbContext = dbContext;
         }
 
-        public async Task CreateAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+        public async Task CreateAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
         {
-            dbContext.Set<T>().AddRange(entities);
+            dbContext.Set<TEntity>().AddRange(entities);
             await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        public Task<IQueryable<T>> GetAsync(CancellationToken cancellationToken = default)
+        public Task<IQueryable<TEntity>> GetAsync(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult(dbContext.Set<T>().AsQueryable());
+            return Task.FromResult(dbContext.Set<TEntity>().AsQueryable());
         }
 
-        public async Task UpdateAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+        public async Task UpdateAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
         {
             foreach (var entity in entities)
             {
@@ -39,9 +39,9 @@ namespace Saintber.EntityFrameworkCore
             await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task DeleteAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+        public async Task DeleteAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
         {
-            dbContext.Set<T>().RemoveRange(entities);
+            dbContext.Set<TEntity>().RemoveRange(entities);
             await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
