@@ -41,12 +41,11 @@
         /// 取得存取範圍內所有實體資料的查詢表達式。
         /// </summary>
         /// <typeparam name="T">實體資料型別。</typeparam>
-        /// <typeparam name="TModel">資料模型型別。</typeparam>
         /// <typeparam name="TFilterModel">篩選資料模型型別。</typeparam>
         /// <param name="store">實體資料條件取得存取庫介面。</param>
         /// <param name="cancellationToken">取消權杖。</param>
         /// <returns>取得存取範圍內所有實體資料的查詢表達式。<</returns>
-        public static async Task<IQueryable<T>> GetAllowAsync<T, TModel, TFilterModel>(this IGetEntityStore<T, TModel, TFilterModel> store
+        public static async Task<IQueryable<T>> GetAllowAsync<T, TFilterModel>(this IEntityStore<T, TFilterModel> store
             , CancellationToken cancellationToken = default)
             where TFilterModel : new()
             => await store.GetAllowAsync(new TFilterModel { }, cancellationToken).ConfigureAwait(false);

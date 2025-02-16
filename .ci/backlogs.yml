@@ -16,7 +16,6 @@ pool:
 variables:
   BuildConfiguration: 'Release'
   BuildProjects: '**/*.csproj'
-  PushBranch: 'dev'
 
 steps:
 - checkout: self
