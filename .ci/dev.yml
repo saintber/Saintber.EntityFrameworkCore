@@ -96,16 +96,9 @@ steps:
     echo "Configuring Git..."
     git config --global user.email "$(GitHubUserMail)"
     git config --global user.name "$(GitHubUserName)"
+    git fetch origin
     git remote set-url origin https://$(GitHubToken)@github.com$(GitHubEndPoint)
     echo "Pushing to $(PushBranch) branch..."
-    git fetch origin
-    if git show-ref --verify --quiet refs/remotes/origin/$(PushBranch); then
-        echo "Branch $(PushBranch) exists remotely. Checking out..."
-        git checkout -B $(PushBranch) origin/$(PushBranch)
-    else
-        echo "Branch $(PushBranch) does not exist remotely. Creating new branch..."
-        git checkout -b $(PushBranch)
-    fi
     git push -u origin $(PushBranch)
   displayName: "Push to GitHub $(PushBranch) branch"
 
