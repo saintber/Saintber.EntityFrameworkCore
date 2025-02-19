@@ -18,6 +18,7 @@ namespace Saintber.EntityFrameworkCore.UnitTests
         {
             var scope = Provider.CreateScope();
             var store = scope.ServiceProvider.GetRequiredService<IEntityStore<TestEntityNoInfo>>();
+            var alterName = "TestName";
 
             // 建立實體資料
             await store.CreateAsync(new TestEntityNoInfo());
@@ -27,12 +28,12 @@ namespace Saintber.EntityFrameworkCore.UnitTests
             Assert.AreEqual(1, entity.Id, $"{nameof(IEntityStore<TestEntityNoInfo>)} 建立實體資料測試失敗。");
 
             // 修改實體資料
-            entity.Id = 2;
+            entity.Name = alterName;
             await store.UpdateAsync(entity);
             entity = (await store.GetAsync()).SingleOrDefault();
 
             Assert.IsNotNull(entity, $"{nameof(IEntityStore<TestEntityNoInfo>)} 異動實體資料測試失敗 - 資料不存在。");
-            Assert.AreEqual(2, entity.Id, $"{nameof(IEntityStore<TestEntityNoInfo>)} 異動實體資料測試失敗。");
+            Assert.AreEqual(alterName, entity.Name, $"{nameof(IEntityStore<TestEntityNoInfo>)} 異動實體資料測試失敗。");
 
             // 刪除實體資料
             await store.DeleteAsync(entity);
@@ -50,6 +51,7 @@ namespace Saintber.EntityFrameworkCore.UnitTests
             var scope = Provider.CreateScope();
             var store = scope.ServiceProvider.GetRequiredService<IEntityStore<TestEntityHasInfo>>();
             var userProvider = scope.ServiceProvider.GetRequiredService<IAlterUserProvider<string>>();
+            var alterName = "TestName";
 
             // 建立實體資料
             var dateTime = DbContextExtensions.UtcNow.AddSeconds(-1);
@@ -68,13 +70,13 @@ namespace Saintber.EntityFrameworkCore.UnitTests
             Assert.AreEqual(false, entity.Deleted, "建立實體資料測試失敗");
 
             // 修改實體資料
-            entity.Id = 2;
+            entity.Name = alterName;
             dateTime = DbContextExtensions.UtcNow.AddSeconds(-1);
             await store.UpdateAsync(entity);
             entity = (await store.GetAsync()).SingleOrDefault();
 
             Assert.IsNotNull(entity, $"{nameof(IEntityStore<TestEntityNoInfo>)} 異動實體資料測試失敗 - 資料不存在");
-            Assert.AreEqual(2, entity.Id, $"{nameof(IEntityStore<TestEntityNoInfo>)} 異動實體資料測試失敗。");
+            Assert.AreEqual(alterName, entity.Name, $"{nameof(IEntityStore<TestEntityNoInfo>)} 異動實體資料測試失敗。");
 
             Assert.IsTrue(entity.CreateTime > dateTime, $"異動實體資料測試失敗 - 預期大於 {dateTime:yyyy/MM/dd HH:mm:ss.fff}，" +
                 $"實際 {entity.CreateTime:yyyy/MM/dd HH:mm:ss.fff}");
@@ -130,15 +132,15 @@ namespace Saintber.EntityFrameworkCore.UnitTests
     public class TestEntityNoInfo
     {
         public int Id { get; set; } = default!;
+
+        public string? Name { get; set; }
     }
 
     /// <summary>
     /// 有軟刪除與異動資訊的測試實體資料。
     /// </summary>
-    public class TestEntityHasInfo
+    public class TestEntityHasInfo : TestEntityNoInfo
     {
-        public int Id { get; set; } = default!;
-
         public DateTime CreateTime { get; set; }
 
         public string CreateUser { get; set; } = default!;

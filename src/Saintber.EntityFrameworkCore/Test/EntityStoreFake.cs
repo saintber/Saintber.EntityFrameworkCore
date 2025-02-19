@@ -1,4 +1,5 @@
-﻿using Pic.Package.Abstractions;
+﻿using Microsoft.EntityFrameworkCore;
+using Pic.Package.Abstractions;
 using Saintber.EntityFrameworkCore.Abstractions;
 
 namespace Saintber.EntityFrameworkCore.Test
@@ -7,8 +8,10 @@ namespace Saintber.EntityFrameworkCore.Test
     /// 以記憶體虛擬 <see cref="IEntityStore{T}"/> 存取庫。
     /// </summary>
     public class EntityStoreFake<T> : EntityStoreFake<T, string>
+        where T : class
     {
-        public EntityStoreFake(IAlterUserProvider<string> userIdProvider) : base(userIdProvider)
+        public EntityStoreFake(
+            IAlterUserProvider<string> userIdProvider) : base(userIdProvider)
         {
         }
     }
@@ -19,19 +22,17 @@ namespace Saintber.EntityFrameworkCore.Test
     /// <typeparam name="T">實體資料型別。</typeparam>
     /// <typeparam name="TAlterUser">資料異動人員資訊型別。</typeparam>
     public class EntityStoreFake<T, TAlterUser> : IEntityStore<T>
+        where T : class
     {
+        protected readonly DbContextFake<T> context;
         private readonly IAlterUserProvider<TAlterUser> userIdProvider;
 
         public EntityStoreFake
             (IAlterUserProvider<TAlterUser> userIdProvider)
         {
             this.userIdProvider = userIdProvider;
+            context = DbContextFake<T>.Create();
         }
-
-        /// <summary>
-        /// 取得或設定儲存的實體資料清單。
-        /// </summary>
-        List<T> Entities { get; set; } = new List<T>();
 
         /// <summary>
         /// 取得或設定取得資料異動時間函式。
@@ -54,17 +55,18 @@ namespace Saintber.EntityFrameworkCore.Test
             var propertyDeleted = typeof(T).GetProperty(nameof(IHasDeletedGetter.Deleted));
 
             var alterUser = await userIdProvider.GetAlterUserAsync(cancellationToken).ConfigureAwait(false);
+            var fullEntities = await context.Entities.ToListAsync(cancellationToken).ConfigureAwait(false);
             foreach (var entity in entities)
             {
                 var id = propertyId?.GetValue(entity);
                 if ((id is int intId && intId == default))
                 {
-                    var max = Entities.Max(x => (int?)propertyId?.GetValue(x)) ?? 0;
+                    var max = fullEntities.Max(x => (int?)propertyId?.GetValue(x)) ?? 0;
                     propertyId?.SetValue(entity, max + 1);
                 }
-                else if ((id is long longId && longId == default))
+                else if (id is long longId && longId == default)
                 {
-                    var max = Entities.Max(x => (long?)propertyId?.GetValue(x)) ?? 0;
+                    var max = fullEntities.Max(x => (long?)propertyId?.GetValue(x)) ?? 0;
                     propertyId?.SetValue(entity, max + 1);
                 }
                 else if (id is Guid guidId && guidId == default)
@@ -77,11 +79,14 @@ namespace Saintber.EntityFrameworkCore.Test
                 propertyUpdateTime?.SetValue(entity, DbContextExtensions.UtcNow);
                 propertyDeleted?.SetValue(entity, false);
             }
-            Entities.AddRange(entities);
+            context.Entities.AddRange(entities);
+            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public Task<IQueryable<T>> GetAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(Entities.AsQueryable());
+        {
+            return Task.FromResult(context.Entities.AsQueryable());
+        }
 
         public async Task UpdateAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
         {
@@ -94,7 +99,9 @@ namespace Saintber.EntityFrameworkCore.Test
             {
                 propertyUpdateUser?.SetValue(entity, userId);
                 propertyUpdateTime?.SetValue(entity, utcNow);
+                context.Entry(entity).State = EntityState.Modified;
             }
+            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public async Task DeleteAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
@@ -103,19 +110,24 @@ namespace Saintber.EntityFrameworkCore.Test
             var propertyUpdateUser = typeof(T).GetProperty(nameof(IHasUpdateInfoGetter.UpdateUser));
             var propertyDeleted = typeof(T).GetProperty(nameof(IHasDeletedGetter.Deleted));
 
-            var utcNow = new DateTimeOffset(DateTime.Now).ToUniversalTime().DateTime;
-            var userId = await userIdProvider.GetAlterUserAsync(cancellationToken).ConfigureAwait(false);
-
-            if (propertyDeleted == null) Entities.RemoveAll(entities.Contains);
+            if (propertyDeleted == null)
+            {
+                context.Entities.RemoveRange(entities);
+            }
             else
             {
+                var utcNow = new DateTimeOffset(DateTime.Now).ToUniversalTime().DateTime;
+                var userId = await userIdProvider.GetAlterUserAsync(cancellationToken).ConfigureAwait(false);
+
                 foreach (var entity in entities)
                 {
                     propertyDeleted?.SetValue(entity, true);
                     propertyUpdateTime?.SetValue(entity, utcNow);
                     propertyUpdateUser?.SetValue(entity, userId);
+                    context.Entry(entity).State = EntityState.Modified;
                 }
             }
+            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }
