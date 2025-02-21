@@ -1,4 +1,6 @@
-﻿namespace Saintber.EntityFrameworkCore
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace Saintber.EntityFrameworkCore
 {
     public static class EntityStoreExtensions
     {
@@ -38,16 +40,33 @@
             => store.DeleteAsync(new[] { entity }, cancellationToken);
 
         /// <summary>
-        /// 取得存取範圍內所有實體資料的查詢表達式。
+        /// 取得可存取範圍內所有實體資料的查詢表達式。
         /// </summary>
         /// <typeparam name="T">實體資料型別。</typeparam>
         /// <typeparam name="TFilterModel">篩選資料模型型別。</typeparam>
-        /// <param name="store">實體資料條件取得存取庫介面。</param>
+        /// <param name="store">實體資料存取庫介面。</param>
         /// <param name="cancellationToken">取消權杖。</param>
-        /// <returns>取得存取範圍內所有實體資料的查詢表達式。<</returns>
-        public static async Task<IQueryable<T>> GetAllowAsync<T, TFilterModel>(this IEntityStore<T, TFilterModel> store
+        /// <returns>表示可存取範圍內所有實體資料的查詢表達式。</returns>
+        public static Task<IQueryable<T>> GetAllowedAsync<T, TFilterModel>(this IEntityStore<T, TFilterModel> store
             , CancellationToken cancellationToken = default)
             where TFilterModel : new()
-            => await store.GetAllowAsync(new TFilterModel { }, cancellationToken).ConfigureAwait(false);
+            => store.GetAllowedAsync(new TFilterModel { }, cancellationToken);
+
+        /// <summary>
+        /// 取得可存取範圍內符合篩選條件的實體資料清單。
+        /// </summary>
+        /// <typeparam name="T">實體資料型別。</typeparam>
+        /// <typeparam name="TFilterModel">篩選資料模型型別。</typeparam>
+        /// <param name="store">實體資料存取庫介面。</param>
+        /// <param name="filter">篩選條件。</param>
+        /// <param name="cancellationToken">取消權杖。</param>
+        /// <returns>包含可存取範圍內符合篩選條件的實體資料清單。</returns>
+        public static async Task<List<T>> GetAllowedListAsync<T, TFilterModel>(this IEntityStore<T, TFilterModel> store
+            , TFilterModel filter, CancellationToken cancellationToken = default)
+            where TFilterModel : new()
+        {
+            var queryable = await store.GetAllowedAsync(filter, cancellationToken).ConfigureAwait(false);
+            return await queryable.ToListAsync(cancellationToken).ConfigureAwait(false);
+        }
     }
 }

@@ -21,7 +21,7 @@
         public Task DeleteAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
             => entityStore.DeleteAsync(entities, cancellationToken);
 
-        public abstract Task<IQueryable<TEntity>> GetAllowAsync(TFilterModel model, CancellationToken cancellationToken = default);
+        public abstract Task<IQueryable<TEntity>> GetAllowedAsync(TFilterModel model, CancellationToken cancellationToken = default);
 
         public abstract Task<IQueryable<TEntity>> GetAsync(TFilterModel model, CancellationToken cancellationToken = default);
 

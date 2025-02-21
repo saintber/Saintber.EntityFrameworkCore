@@ -59,7 +59,7 @@
         /// <param name="model">篩選資料模型。</param>
         /// <param name="cancellationToken">取消權杖。</param>
         /// <returns>允許存取且符合篩選條件的實體資料清單。</returns>
-        Task<IQueryable<TEntity>> GetAllowAsync(TFilterModel model, CancellationToken cancellationToken = default);
+        Task<IQueryable<TEntity>> GetAllowedAsync(TFilterModel model, CancellationToken cancellationToken = default);
     }
 
     /// <summary>
