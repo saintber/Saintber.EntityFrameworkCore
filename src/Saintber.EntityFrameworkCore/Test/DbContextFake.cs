@@ -38,6 +38,4 @@ namespace Saintber.EntityFrameworkCore.Test
             return _context;
         }
     }
-
-
 }
