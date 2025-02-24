@@ -53,6 +53,23 @@ namespace Saintber.EntityFrameworkCore
             => store.GetAllowedAsync(new TFilterModel { }, cancellationToken);
 
         /// <summary>
+        /// 取得符合篩選條件的實體資料清單。
+        /// </summary>
+        /// <typeparam name="T">實體資料型別。</typeparam>
+        /// <typeparam name="TFilterModel">篩選資料模型型別。</typeparam>
+        /// <param name="store">實體資料存取庫介面。</param>
+        /// <param name="filter">篩選條件。</param>
+        /// <param name="cancellationToken">取消權杖。</param>
+        /// <returns>符合篩選條件的實體資料清單。</returns>
+        public static async Task<List<T>> GetListAsync<T, TFilterModel>(this IEntityStore<T, TFilterModel> store
+            , TFilterModel filter, CancellationToken cancellationToken = default)
+            where TFilterModel : new()
+        {
+            var queryable = await store.GetAsync(filter, cancellationToken).ConfigureAwait(false);
+            return await queryable.ToListAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// 取得可存取範圍內符合篩選條件的實體資料清單。
         /// </summary>
         /// <typeparam name="T">實體資料型別。</typeparam>
