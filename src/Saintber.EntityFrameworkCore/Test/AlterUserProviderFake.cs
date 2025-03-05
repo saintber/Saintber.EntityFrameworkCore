@@ -1,4 +1,5 @@
-﻿using Saintber.EntityFrameworkCore.Abstractions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Saintber.EntityFrameworkCore.Abstractions;
 
 namespace Saintber.EntityFrameworkCore.Test
 {
@@ -31,5 +32,18 @@ namespace Saintber.EntityFrameworkCore.Test
         {
             return Task.FromResult("1");
         }
+    }
+
+    public static class AlterUserProviderFakeExtensions
+    {
+        /// <summary>
+        /// 加入虛擬資料異動人員資訊提供者。
+        /// </summary>
+        /// <param name="services">註冊服務的集合。</param>
+        /// <param name="userInfo">異動人員資訊。</param>
+        /// <returns>註冊服務的集合。</returns>
+        public static IServiceCollection AddAlterUserProviderFake(this IServiceCollection services
+            , string userInfo = "1")
+            => services.AddSingleton<IAlterUserProvider>(new AlterUserProviderFake(userInfo));
     }
 }

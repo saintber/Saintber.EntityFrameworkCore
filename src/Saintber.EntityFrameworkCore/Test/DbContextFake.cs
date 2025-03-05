@@ -1,5 +1,7 @@
 ﻿using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Saintber.EntityFrameworkCore.Test
 {
@@ -36,6 +38,54 @@ namespace Saintber.EntityFrameworkCore.Test
             var _context = new DbContextFake<TEntity>(options);
             _context.Database.EnsureCreated();
             return _context;
+        }
+    }
+
+    /// <summary>
+    /// 虛擬資料庫連線實體。/>
+    /// </summary>
+    public abstract class DbContextFakeBase<TDbContext> : DbContext
+        where TDbContext : DbContext
+    {
+        public DbContextFakeBase(DbContextOptions<TDbContext> options)
+            : base(options)
+        {
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder
+                .ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.AmbientTransactionWarning));
+        }
+    }
+
+    public static class DbContextFakeExtensions
+    {
+        /// <summary>
+        /// 加入虛擬資料庫連線實體。
+        /// </summary>
+        /// <param name="services">註冊服務的集合。</param>
+        /// <param name="options">資料庫選項。</param>
+        /// <returns>註冊服務的集合。</returns>
+        public static IServiceCollection AddDbContextFake<TDbContext>(
+            this IServiceCollection services)
+            where TDbContext : DbContext
+        {
+            services.AddScoped(provider =>
+            {
+                var _connection = new SqliteConnection("DataSource=:memory:");
+                _connection.Open();
+
+                var options = new DbContextOptionsBuilder<TDbContext>()
+                    .UseSqlite(_connection)
+                    .Options;
+
+                var _context = (TDbContext?)Activator.CreateInstance(typeof(TDbContext), options)
+                    ?? throw new TypeInitializationException(typeof(TDbContext).FullName, null);
+                _context.Database.EnsureCreated();
+                return _context;
+            });
+            return services;
         }
     }
 }

@@ -35,44 +35,104 @@ namespace Saintber.EntityFrameworkCore
         /// <param name="userId">使用者識別碼。</param>
         public static void ToSaveChangeEntities<TUserId>(this ChangeTracker changeTracker, TUserId userId)
         {
-            // 建立
-            var AddedEntities = changeTracker.Entries()
-                .Where(entity => entity.State == EntityState.Added)
-                .ToList();
+            changeTracker.ToSaveChangeEntities(
+                new Dictionary<string, object?>
+                {
+                    { nameof(IHasCreateInfoGetter<TUserId>.CreateTime), UtcNow },
+                    { nameof(IHasCreateInfoGetter<TUserId>.CreateUser), userId },
+                    { nameof(IHasUpdateInfoGetter<TUserId>.UpdateTime), UtcNow },
+                    { nameof(IHasUpdateInfoGetter<TUserId>.UpdateUser), userId },
+                    { nameof(IHasDeletedGetter.Deleted), false }
+                }, new Dictionary<string, object?>
+                {
+                    { nameof(IHasUpdateInfoGetter<TUserId>.UpdateTime), UtcNow },
+                    { nameof(IHasUpdateInfoGetter<TUserId>.UpdateUser), userId }
+                }, new Tuple<string, bool>(nameof(IHasDeletedGetter.Deleted), true));
+        }
 
-            AddedEntities.ForEach(entity =>
+
+        /// <summary>
+        /// 套用儲存變更時的通用資訊，由使用者自行指定資料欄位與資料值，刪除部分提供軟刪除處理。
+        /// </summary>
+        /// <param name="changeTracker">儲存變更的追蹤元件。</param>
+        /// <param name="createFields">建立異動欄位清單，若為 null 則不處理建立資料。</param>
+        /// <param name="updateFields">更新異動欄位清單，若為 null 則不處理異動資料。</param>
+        /// <param name="deleteField">軟刪除欄位名稱與設定值，設定值須為 True 或 False，若不設定軟刪除欄位則不處理刪除資料。</param>
+        public static void ToSaveChangeEntities(
+            this ChangeTracker changeTracker
+            , Dictionary<string, object?>? createFields = null
+            , Dictionary<string, object?>? updateFields = null
+            , Tuple<string, bool>? deleteField = null)
+        {
+            changeTracker.ToSaveChangeEntities(
+                createFields == null ? default : (entity) =>
+                {
+                    foreach (var field in createFields)
+                    {
+                        entity.TrySetValue(field.Key, field.Value);
+                    }
+                },
+                updateFields == null ? default : (entity) =>
+                {
+                    foreach (var field in updateFields)
+                    {
+                        entity.TrySetValue(field.Key, field.Value);
+                    }
+                },
+                deleteField == null ? default : (entity) =>
+                {
+                    if (entity.Metadata.FindProperty(deleteField.Item1) != null)
+                    {
+                        entity.Property(deleteField.Item1).CurrentValue = deleteField.Item2;
+                        entity.State = EntityState.Modified;
+                    }
+                });
+        }
+
+        /// <summary>
+        /// 套用儲存變更時的通用資訊，由使用者自行指定處理動作，
+        /// 函式呼叫順序依序為 <paramref name="createAction"/>
+        /// , <paramref name="deleteAction"/>, <paramref name="updateAction"/>。
+        /// </summary>
+        /// <param name="changeTracker">儲存變更的追蹤元件。</param>
+        /// <param name="createAction">建立處理函式。</param>
+        /// <param name="updateAction">異動處理函式。</param>
+        /// <param name="deleteAction">刪除處理函式。</param>
+        public static void ToSaveChangeEntities(
+            this ChangeTracker changeTracker
+            , Action<EntityEntry>? createAction = null
+            , Action<EntityEntry>? updateAction = null
+            , Action<EntityEntry>? deleteAction = null)
+        {
+            // 建立
+            if (createAction != null)
             {
-                entity.TrySetValue(nameof(IHasCreateInfoGetter<string>.CreateTime), UtcNow);
-                entity.TrySetValue(nameof(IHasCreateInfoGetter<string>.CreateUser), userId);
-                entity.TrySetValue(nameof(IHasUpdateInfoGetter<string>.UpdateTime), UtcNow);
-                entity.TrySetValue(nameof(IHasUpdateInfoGetter<string>.UpdateUser), userId);
-                entity.TrySetValue(nameof(IHasDeletedGetter.Deleted), false);
-            });
+                var AddedEntities = changeTracker.Entries()
+                    .Where(entity => entity.State == EntityState.Added)
+                    .ToList();
+
+                AddedEntities.ForEach(createAction);
+            }
 
             // 刪除
-            var DeletedEntities = changeTracker.Entries()
-                .Where(entity => entity.State == EntityState.Deleted)
-                .ToList();
-
-            DeletedEntities.ForEach(entity =>
+            if (deleteAction != null)
             {
-                if (entity.Metadata.FindProperty(nameof(IHasDeletedGetter.Deleted)) != null)
-                {
-                    entity.Property(nameof(IHasDeletedGetter.Deleted)).CurrentValue = true;
-                    entity.State = EntityState.Modified;
-                }
-            });
+                var DeletedEntities = changeTracker.Entries()
+                    .Where(entity => entity.State == EntityState.Deleted)
+                    .ToList();
+
+                DeletedEntities.ForEach(deleteAction);
+            }
 
             // 修改
-            var EditedEntities = changeTracker.Entries()
-                .Where(entity => entity.State == EntityState.Modified)
-                .ToList();
-
-            EditedEntities.ForEach(entity =>
+            if (updateAction != null)
             {
-                entity.TrySetValue(nameof(IHasUpdateInfoGetter<string>.UpdateTime), UtcNow);
-                entity.TrySetValue(nameof(IHasUpdateInfoGetter<string>.UpdateUser), userId);
-            });
+                var EditedEntities = changeTracker.Entries()
+                    .Where(entity => entity.State == EntityState.Modified)
+                    .ToList();
+
+                EditedEntities.ForEach(updateAction);
+            }
         }
     }
 }
