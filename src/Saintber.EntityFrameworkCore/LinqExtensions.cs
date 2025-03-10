@@ -14,7 +14,7 @@ namespace Saintber.EntityFrameworkCore
         /// <param name="queryFull">完整實體資料查詢表達式。</param>
         /// <param name="predicate">篩選判斷式。</param>
         /// <returns>篩選後的查詢表達式。</returns>
-        public static IQueryable<TSource> Where<TSource>(this IQueryable<TSource> querySource
+        public static IQueryable<TSource> Where<TSource>(this IQueryable<TSource>? querySource
             , IQueryable<TSource> queryFull, Expression<Func<TSource, bool>> predicate)
             => (querySource ?? queryFull).Where(predicate);
 
