@@ -2,6 +2,7 @@
 
 namespace Saintber.EntityFrameworkCore
 {
+    [Obsolete("此類別已過時，請使用 EntityRepository 進行開發，並透過 SQLite 進行 EntityRepository 測試")]
     public static class EntityStoreExtensions
     {
         /// <summary>

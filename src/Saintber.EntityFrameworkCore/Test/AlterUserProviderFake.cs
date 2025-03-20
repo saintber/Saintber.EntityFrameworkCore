@@ -6,6 +6,7 @@ namespace Saintber.EntityFrameworkCore.Test
     /// <summary>
     /// 虛擬資料異動人員資訊提供者。
     /// </summary>
+    [Obsolete]
     public class AlterUserProviderFake : IAlterUserProvider
     {
         /// <summary>
@@ -34,6 +35,7 @@ namespace Saintber.EntityFrameworkCore.Test
         }
     }
 
+    [Obsolete]
     public static class AlterUserProviderFakeExtensions
     {
         /// <summary>

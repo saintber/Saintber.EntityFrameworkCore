@@ -4,6 +4,7 @@
     /// 實體資料存取庫介面。
     /// </summary>
     /// <typeparam name="TEntity">實體資料型別。</typeparam>
+    [Obsolete("此介面已過時，請使用 EntityRepository 進行開發，並透過 SQLite 進行 EntityRepository 測試")]
     public interface IEntityStore<TEntity>
     {
         /// <summary>

@@ -8,6 +8,10 @@
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Saintber.Abstractions" Version="1.0.0-rc03-alpha08" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
     <PackageReference Include="Microsoft.EntityFrameworkCore">
       <Version>7.0.20</Version>
@@ -34,5 +38,4 @@
       <Version>9.0.2</Version>
     </PackageReference>
   </ItemGroup>
-
 </Project>

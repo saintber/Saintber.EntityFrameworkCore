@@ -7,6 +7,7 @@ namespace Saintber.EntityFrameworkCore.Test
     /// <summary>
     /// 以記憶體虛擬 <see cref="IEntityStore{T}"/> 存取庫。
     /// </summary>
+    [Obsolete("此類別已過時，請使 SQLite 進行 EntityRepository 測試")]
     public class EntityStoreFake<T> : EntityStoreFake<T, string>
         where T : class
     {
@@ -21,6 +22,7 @@ namespace Saintber.EntityFrameworkCore.Test
     /// </summary>
     /// <typeparam name="T">實體資料型別。</typeparam>
     /// <typeparam name="TAlterUser">資料異動人員資訊型別。</typeparam>
+    [Obsolete("此類別已過時，請使 SQLite 進行 EntityRepository 測試")]
     public class EntityStoreFake<T, TAlterUser> : IEntityStore<T>
         where T : class
     {

@@ -16,6 +16,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "方案項目", "方案項�
 		nuget.config = nuget.config
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Snippest", "Snippest", "{79A021D4-0369-4E8A-BD3B-9CC8C32123E1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,5 +39,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{FA760B49-C2D1-4323-AFEB-5F7D59BEFCE8} = {61E53C3A-EA8E-45C7-8A53-BB6AD78D9E71}
 		{4B65C9E8-C575-49F8-831C-CEFB3478BBC3} = {A31AB525-F709-453C-AB66-EB9FDC137A0E}
+		{79A021D4-0369-4E8A-BD3B-9CC8C32123E1} = {4AE96CD0-2A64-4B88-9D68-80ACF2EAE7C9}
 	EndGlobalSection
 EndGlobal
